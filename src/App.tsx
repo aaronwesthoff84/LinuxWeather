@@ -10,6 +10,7 @@ import { DailyForecast } from "./ui/components/DailyForecast";
 import { DetailGrid } from "./ui/components/DetailGrid";
 import { CitySearch } from "./ui/components/CitySearch";
 import { CityTabs } from "./ui/components/CityTabs";
+import { RadarMap } from "./ui/components/RadarMap";
 
 export default function App() {
   const cities = useAppStore((s) => s.cities);
@@ -95,6 +96,7 @@ export default function App() {
           <>
             <HeroHeader city={selectedCity} weather={entry.data} />
             <HourlyStrip weather={entry.data} surface={scene.surface} />
+            <RadarMap city={selectedCity} surface={scene.surface} />
             <DailyForecast weather={entry.data} surface={scene.surface} />
             <DetailGrid
               weather={entry.data}
