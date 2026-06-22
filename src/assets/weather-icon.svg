@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" aria-label="Weather icon">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#9ecbf5"/>
+      <stop offset="60%" stop-color="#4f9bf3"/>
+      <stop offset="100%" stop-color="#2b6df6"/>
+    </radialGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff4b8"/>
+      <stop offset="60%" stop-color="#ffd65a"/>
+      <stop offset="100%" stop-color="#f4a83a"/>
+    </radialGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#dfe6ef"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded sky background -->
+  <rect x="4" y="4" width="120" height="120" rx="28" ry="28" fill="url(#sky)"/>
+
+  <!-- Sun -->
+  <circle cx="50" cy="52" r="22" fill="url(#sun)"/>
+
+  <!-- Sun rays -->
+  <g stroke="#ffd65a" stroke-width="3" stroke-linecap="round" opacity="0.85">
+    <line x1="50" y1="18" x2="50" y2="26"/>
+    <line x1="50" y1="78" x2="50" y2="86"/>
+    <line x1="16" y1="52" x2="24" y2="52"/>
+    <line x1="76" y1="52" x2="84" y2="52"/>
+    <line x1="26" y1="28" x2="32" y2="34"/>
+    <line x1="68" y1="70" x2="74" y2="76"/>
+    <line x1="74" y1="28" x2="68" y2="34"/>
+    <line x1="32" y1="70" x2="26" y2="76"/>
+  </g>
+
+  <!-- Cloud -->
+  <g fill="url(#cloud)">
+    <ellipse cx="78" cy="92" rx="28" ry="14"/>
+    <circle cx="64" cy="86" r="14"/>
+    <circle cx="84" cy="80" r="16"/>
+    <circle cx="98" cy="90" r="12"/>
+  </g>
+</svg>
