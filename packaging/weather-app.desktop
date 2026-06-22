@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Weather
+GenericName=Weather Forecast
+Comment=iOS-style weather forecast for Linux
+Categories=Utility;Network;
+Terminal=false
+StartupNotify=true
+StartupWMClass=Weather
+Icon=weather-app
+# Env vars duplicated from the binary's built-in fixups so that desktop
+# launchers (GNOME Activities, KDE menu, etc.) inherit them too.
+Exec=env WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 weather-app %U

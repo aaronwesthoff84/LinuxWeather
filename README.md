@@ -13,17 +13,21 @@ React + TypeScript, layered architecture (UI / service / data).
 - Detail grid: UV, Sunrise/Sunset, Wind, Precipitation, Feels Like, Humidity, Visibility, Pressure
 - Search & add multiple cities, switch between them, detect current location
 - °C / °F toggle (auto-refreshes all cities)
+- **Wayland-compatible out of the box** (see [Wayland support](#wayland-support))
 
 ## Architecture
 
 ```
-src/
+src/         # ── FRONTEND (TypeScript / React) ──
   data/        # HTTP clients + types/normalization (no React)
   services/    # weather, location, units, gradient/scene
   store/       # zustand state
   utils/       # formatting helpers
   ui/          # components + design tokens
-src-tauri/     # Rust shell (Tauri 2)
+  assets/      # SVG icons / branding
+src-tauri/   # ── NATIVE SHELL (Rust / Tauri 2) ──
+scripts/     # launcher helpers
+packaging/   # .desktop file + distro packaging assets
 ```
 
 UI → Service → Data only. No `fetch` calls in the UI layer.
@@ -63,8 +67,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ```bash
 npm install
-npm run tauri icon assets/icon-source.png   # optional, needs a 1024px PNG
-npm run dev                                 # boots Vite + native window
+npm run tauri icon src/assets/weather-icon.svg   # optional, regenerates icons
+npm run dev                                      # boots Vite + native window
 ```
 
 ### Build a distributable
@@ -74,6 +78,75 @@ npm run build
 # Outputs (on Linux):
 #   src-tauri/target/release/bundle/appimage/Weather_1.0.0_amd64.AppImage
 #   src-tauri/target/release/bundle/deb/weather-app_1.0.0_amd64.deb
+```
+
+## Wayland support
+
+Tauri uses **WebKitGTK** under the hood, which has known rendering issues on
+Wayland (GNOME 45+, KDE 6+, Sway, Hyprland) caused by its default DMABUF
+renderer. Symptoms include:
+
+- A solid black or transparent app window
+- Severe flickering or tearing
+- Crash on launch with `BadAccess` / `GLX` errors in the journal
+- Blurry text or laggy scrolling
+
+### What this app does automatically
+
+The Rust shell sets three environment variables at process start (in
+`src-tauri/src/main.rs`), **before** the webview initializes:
+
+| Variable | Value | Why |
+|---|---|---|
+| `WEBKIT_DISABLE_DMABUF_RENDERER` | `1` | Disables the broken DMABUF path on WebKitGTK 2.42+ |
+| `WEBKIT_DISABLE_COMPOSITING_MODE` | `1` | Fallback for older WebKitGTK shipped on Ubuntu 22.04 / Debian stable |
+| `__GL_GSYNC_ALLOWED` | `0` | Stops NVIDIA + Wayland frame-pacing stutter |
+
+These are only applied if the user hasn't already set them, and the entire
+fixup pass can be disabled by exporting `WEATHER_APP_NO_FIXUPS=1` before
+launch.
+
+If you also need to fall back from Wayland to XWayland on a specific machine:
+
+```bash
+GDK_BACKEND=x11 weather-app
+```
+
+### Launching the AppImage with the same env vars
+
+The Rust binary's built-in fixups cover this case automatically, but
+`scripts/run-weather.sh` is a portable launcher that exports the same
+variables before exec'ing the binary — handy for testing or for distros
+where AppImage execution strips environment vars.
+
+```bash
+./scripts/run-weather.sh ./Weather_1.0.0_amd64.AppImage
+```
+
+### Desktop launcher (.desktop entry)
+
+`packaging/weather-app.desktop` provides a working `[Desktop Entry]` that
+applies the same env vars when launched from the GNOME Activities overview,
+KDE app menu, etc. Install it system-wide with:
+
+```bash
+sudo install -Dm644 packaging/weather-app.desktop \
+    /usr/share/applications/weather-app.desktop
+```
+
+…or per-user:
+
+```bash
+install -Dm644 packaging/weather-app.desktop \
+    ~/.local/share/applications/weather-app.desktop
+update-desktop-database ~/.local/share/applications
+```
+
+### Verifying which display server you're on
+
+```bash
+echo "$XDG_SESSION_TYPE"        # 'wayland' or 'x11'
+echo "$WAYLAND_DISPLAY"         # set on Wayland, unset on X11
 ```
 
 ## Stretch ideas
