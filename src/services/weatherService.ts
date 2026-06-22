@@ -51,7 +51,6 @@ function normalize(raw: RawForecastResponse): NormalizedWeather {
   };
 }
 
-/** Return the next 24 hourly points starting at the current hour. */
 export function upcomingHours(
   weather: NormalizedWeather,
   count = 24
@@ -69,8 +68,9 @@ export function upcomingHours(
 export async function getWeather(
   latitude: number,
   longitude: number,
-  unit: TemperatureUnit
+  unit: TemperatureUnit,
+  apiKey?: string
 ): Promise<NormalizedWeather> {
-  const raw = await fetchForecast(latitude, longitude, unit);
+  const raw = await fetchForecast(latitude, longitude, unit, apiKey);
   return normalize(raw);
 }

@@ -3,6 +3,7 @@ import type { Scene } from "../../services/gradientService";
 
 interface Props {
   scene: Scene;
+  reducedMotion?: boolean;
 }
 
 interface Drop {
@@ -13,13 +14,14 @@ interface Drop {
   drift: number;
 }
 
-export function AnimatedBackground({ scene }: Props) {
+export function AnimatedBackground({ scene, reducedMotion = false }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number>(0);
 
   const gradientCss = `linear-gradient(180deg, ${scene.gradient[0]} 0%, ${scene.gradient[1]} 52%, ${scene.gradient[2]} 100%)`;
 
   useEffect(() => {
+    if (reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas || scene.particle === "none") return;
     const ctx = canvas.getContext("2d");
@@ -78,12 +80,12 @@ export function AnimatedBackground({ scene }: Props) {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", onResize);
     };
-  }, [scene.particle]);
+  }, [scene.particle, reducedMotion]);
 
   return (
     <>
       <div className="bg-gradient" style={{ background: gradientCss }} />
-      {scene.particle !== "none" && (
+      {!reducedMotion && scene.particle !== "none" && (
         <canvas className="bg-canvas" ref={canvasRef} />
       )}
     </>

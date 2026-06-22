@@ -415,3 +415,281 @@ body {
   min-width: 110px;
   text-align: right;
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Settings sheet
+   ────────────────────────────────────────────────────────────── */
+.settings-sheet {
+  width: min(94%, 500px);
+  max-height: 85vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.settings-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+.settings-done {
+  background: none;
+  border: none;
+  color: #7fc4ff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.settings-done:hover { color: #aedaff; }
+.settings-scroll {
+  overflow-y: auto;
+  padding: 12px 20px 24px;
+  scrollbar-width: thin;
+}
+.settings-section {
+  margin-top: 18px;
+}
+.settings-section-title {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  opacity: 0.6;
+  padding: 0 4px 6px;
+}
+.settings-section-body {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.settings-section-hint {
+  font-size: 12px;
+  opacity: 0.6;
+  padding: 8px 4px 0;
+  line-height: 1.4;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+  min-height: 44px;
+}
+.settings-row:first-child { border-top: none; }
+.settings-row.stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+.settings-row.stack .settings-control { width: 100%; }
+.settings-label {
+  font-size: 15px;
+  font-weight: 500;
+}
+.settings-hint {
+  display: block;
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+.settings-value {
+  font-size: 15px;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+.settings-link {
+  color: #7fc4ff;
+  text-decoration: none;
+  font-size: 15px;
+}
+.settings-link:hover { text-decoration: underline; }
+
+/* Toggle row: stacked text + switch on the right */
+.settings-toggle-row {
+  align-items: flex-start;
+}
+.settings-toggle-text { flex: 1; }
+.settings-switch {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.22);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  flex-shrink: 0;
+}
+.settings-switch.on { background: #34c759; }
+.settings-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s ease;
+}
+.settings-switch.on .settings-switch-knob { transform: translateX(18px); }
+
+/* Segmented control (e.g., °C / °F) */
+.settings-segmented {
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 9px;
+  padding: 2px;
+}
+.settings-segment {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  min-width: 48px;
+}
+.settings-segment.active {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+/* Select dropdown */
+.settings-select {
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+.settings-select option {
+  background: #2a3040;
+  color: #fff;
+}
+
+/* Text input */
+.settings-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+.settings-input:focus { border-color: rgba(127, 196, 255, 0.5); }
+
+/* Saved cities list */
+.settings-empty {
+  padding: 14px 16px;
+  opacity: 0.55;
+  font-size: 14px;
+  font-style: italic;
+}
+.settings-city {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+}
+.settings-city:first-child { border-top: none; }
+.settings-city-name {
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settings-city-sub {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+.settings-badge {
+  background: rgba(127, 196, 255, 0.22);
+  color: #7fc4ff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.settings-remove {
+  background: rgba(255, 95, 87, 0.18);
+  color: #ff8a82;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.settings-remove:hover { background: rgba(255, 95, 87, 0.32); }
+
+/* Reset / danger */
+.settings-danger {
+  width: 100%;
+  background: rgba(255, 95, 87, 0.18);
+  color: #ff8a82;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.settings-danger:hover { background: rgba(255, 95, 87, 0.32); }
+.settings-cancel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.settings-cancel:hover { background: rgba(255, 255, 255, 0.22); }
+.settings-confirm {
+  padding: 14px;
+}
+.settings-confirm-text {
+  font-size: 14px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+.settings-confirm-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Reduced-motion overrides */
+body.reduced-motion .fade-in { animation: none; }
+body.reduced-motion .bg-gradient { animation: none; }

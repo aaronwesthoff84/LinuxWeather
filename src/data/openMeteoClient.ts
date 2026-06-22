@@ -1,6 +1,6 @@
 // ── DATA-ACCESS LAYER: all HTTP calls live here ──
 // Open-Meteo requires NO API key. To swap in a paid provider, change the
-// BASE_URL + add the API_KEY header below; nothing else in the app changes.
+// BASE_URL + pass through the apiKey argument (now wired up to settings).
 
 import type {
   RawForecastResponse,
@@ -11,18 +11,14 @@ import type {
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
-// ─────────────────────────────────────────────────────────────────────────
-// If you switch to a paid provider, set this and attach it in `headers`.
-// export const API_KEY = ""; // <-- paid key goes here (empty for Open-Meteo)
-// ─────────────────────────────────────────────────────────────────────────
-
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      // ...(API_KEY ? { Authorization: `Bearer ${API_KEY}` } : {}),
-    },
-  });
+async function getJson<T>(url: string, apiKey?: string): Promise<T> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (apiKey && apiKey.trim().length > 0) {
+    // Generic Bearer auth — matches the most common paid provider pattern.
+    // Adjust the header name if your provider uses something different.
+    headers.Authorization = `Bearer ${apiKey.trim()}`;
+  }
+  const res = await fetch(url, { headers });
   if (!res.ok) {
     throw new Error(`Request failed (${res.status}) for ${url}`);
   }
@@ -32,7 +28,8 @@ async function getJson<T>(url: string): Promise<T> {
 export async function fetchForecast(
   latitude: number,
   longitude: number,
-  unit: TemperatureUnit
+  unit: TemperatureUnit,
+  apiKey?: string
 ): Promise<RawForecastResponse> {
   const windUnit = unit === "fahrenheit" ? "mph" : "kmh";
   const params = new URLSearchParams({
@@ -70,7 +67,10 @@ export async function fetchForecast(
       "wind_speed_10m_max",
     ].join(","),
   });
-  return getJson<RawForecastResponse>(`${FORECAST_URL}?${params.toString()}`);
+  return getJson<RawForecastResponse>(
+    `${FORECAST_URL}?${params.toString()}`,
+    apiKey
+  );
 }
 
 export async function searchPlaces(
