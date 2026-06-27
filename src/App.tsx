@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useAppStore } from "./store/useAppStore";
 import { detectCurrentCity } from "./services/locationService";
 import { sceneFor } from "./services/gradientService";
-import { AnimatedBackground } from "./ui/components/AnimatedBackground";
 import { HeroHeader } from "./ui/components/HeroHeader";
 import { HourlyStrip } from "./ui/components/HourlyStrip";
 import { DailyForecast } from "./ui/components/DailyForecast";
@@ -66,10 +65,6 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [settings.autoRefreshMinutes, refreshAll]);
 
-  useEffect(() => {
-    document.body.classList.toggle("reduced-motion", settings.reducedMotion);
-  }, [settings.reducedMotion]);
-
   const scene = useMemo(() => {
     if (entry?.status === "ready" && entry.data) {
       return sceneFor(entry.data.current.weatherCode, entry.data.current.isDay);
@@ -91,8 +86,7 @@ export default function App() {
   };
 
   return (
-    <div className="app">
-      <AnimatedBackground scene={scene} reducedMotion={settings.reducedMotion} />
+    <div className="app" style={{ background: '#1a1a2e' }}>
       <div className="app-shell">
         <div className="topbar">
           <button onClick={handleDetect} disabled={detecting}>{detecting ? "Locating…" : "📍"}</button>
