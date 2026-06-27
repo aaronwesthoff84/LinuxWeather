@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useAppStore } from "./store/useAppStore";
 import { detectCurrentCity } from "./services/locationService";
 import { sceneFor } from "./services/gradientService";
+import { AnimatedBackground } from "./ui/components/AnimatedBackground";
 import { HeroHeader } from "./ui/components/HeroHeader";
 import { HourlyStrip } from "./ui/components/HourlyStrip";
 import { DailyForecast } from "./ui/components/DailyForecast";
@@ -26,6 +27,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [onboardingMessage, setOnboardingMessage] = useState<string | null>(null);
+  const [radarFullscreen, setRadarFullscreen] = useState(false);
   const onboardingRan = useRef(false);
 
   const selectedCity = cities.find((c) => c.id === selectedId) ?? null;
@@ -65,6 +67,10 @@ export default function App() {
     return () => window.clearInterval(id);
   }, [settings.autoRefreshMinutes, refreshAll]);
 
+  useEffect(() => {
+    document.body.classList.toggle("reduced-motion", settings.reducedMotion);
+  }, [settings.reducedMotion]);
+
   const scene = useMemo(() => {
     if (entry?.status === "ready" && entry.data) {
       return sceneFor(entry.data.current.weatherCode, entry.data.current.isDay);
@@ -87,7 +93,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="static-bg" style={{ background: `linear-gradient(180deg, ${scene.gradient[0]} 0%, ${scene.gradient[1]} 52%, ${scene.gradient[2]} 100%)` }} />
+      <AnimatedBackground scene={scene} reducedMotion={settings.reducedMotion} />
       <div className="app-shell">
         <div className="topbar">
           <button onClick={handleDetect} disabled={detecting}>{detecting ? "Locating…" : "📍"}</button>
@@ -113,10 +119,19 @@ export default function App() {
                   <DailyForecast weather={entry.data} surface={scene.surface} />
                 </div>
                 <div className="forecast-col">
-                  {settings.showRadar && <RadarMap city={selectedCity} surface={scene.surface} />}
-                  <DetailGrid weather={entry.data} unit={settings.unit} surface={scene.surface} />
+                  {settings.showRadar && (
+                    <div className={radarFullscreen ? "radar-fullscreen" : ""}>
+                      <div className="radar-fs-header">
+                        <span className="radar-fs-title">Precipitation Radar</span>
+                        <button className="radar-fs-close" onClick={() => setRadarFullscreen(false)}>✕</button>
+                      </div>
+                      <RadarMap city={selectedCity} surface={scene.surface} paused={radarFullscreen} />
+                    </div>
+                  )}
+                  {!settings.showRadar && <DetailGrid weather={entry.data} unit={settings.unit} surface={scene.surface} />}
                 </div>
               </div>
+              {settings.showRadar && <DetailGrid weather={entry.data} unit={settings.unit} surface={scene.surface} />}
             </>
           )}
         </div>
