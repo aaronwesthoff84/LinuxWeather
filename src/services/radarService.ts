@@ -68,3 +68,30 @@ export async function getRadarBundle(
 
   return { frames, defaultIndex };
 }
+
+/** Fetch + normalize the latest RainViewer satellite (infrared) bundle. */
+export async function getSatelliteBundle(
+  options: RadarOptions = {}
+): Promise<RadarBundle> {
+  const o = { ...DEFAULTS, color: 0, ...options };
+  const manifest = await fetchRadarManifest();
+
+  if (!manifest.satellite?.infrared || manifest.satellite.infrared.length === 0) {
+    throw new Error("Satellite data unavailable for this region");
+  }
+
+  const build = (path: string): string =>
+    `${manifest.host}${path}/${o.size}/{z}/{x}/{y}/${o.color}/${
+      o.smooth ? 1 : 0
+    }_${o.snow ? 1 : 0}.png`;
+
+  const frames = manifest.satellite.infrared.map((f) => ({
+    timestamp: f.time * 1000,
+    forecast: false,
+    tileUrlTemplate: build(f.path),
+  })).sort((a, b) => a.timestamp - b.timestamp);
+
+  const defaultIndex = Math.max(0, frames.length - 1);
+
+  return { frames, defaultIndex };
+}

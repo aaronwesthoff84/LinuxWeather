@@ -16,6 +16,10 @@ function normalize(raw: RawForecastResponse): NormalizedWeather {
     weatherCode: raw.hourly.weather_code[i],
     isDay: raw.hourly.is_day[i] === 1,
     precipProbability: raw.hourly.precipitation_probability[i] ?? 0,
+    apparentTemperature: raw.hourly.apparent_temperature[i] ?? raw.hourly.temperature_2m[i],
+    humidity: raw.hourly.relative_humidity_2m[i] ?? 0,
+    windSpeed: raw.hourly.wind_speed_10m[i] ?? 0,
+    windDirection: raw.hourly.wind_direction_10m[i] ?? 0,
   }));
 
   const daily = raw.daily.time.map((date, i) => ({

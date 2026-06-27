@@ -37,6 +37,10 @@ export interface RawForecastResponse {
     weather_code: number[];
     is_day: (0 | 1)[];
     precipitation_probability: number[];
+    apparent_temperature: number[];
+    relative_humidity_2m: number[];
+    wind_speed_10m: number[];
+    wind_direction_10m: number[];
   };
   daily: {
     time: string[];
@@ -81,6 +85,10 @@ export interface HourlyPoint {
   weatherCode: number;
   isDay: boolean;
   precipProbability: number;
+  apparentTemperature: number;
+  humidity: number;
+  windSpeed: number;
+  windDirection: number;
 }
 
 export interface DailyPoint {

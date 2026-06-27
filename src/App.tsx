@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "./store/useAppStore";
 import { detectCurrentCity } from "./services/locationService";
+import { sceneFor } from "./services/gradientService";
+import { degrees } from "./services/unitService";
+import { labelFor } from "./data/weatherCodes";
 import { HeroHeader } from "./ui/components/HeroHeader";
 import { HourlyStrip } from "./ui/components/HourlyStrip";
 import { DailyForecast } from "./ui/components/DailyForecast";
@@ -9,6 +13,18 @@ import { CitySearch } from "./ui/components/CitySearch";
 import { CityTabs } from "./ui/components/CityTabs";
 import { RadarMap } from "./ui/components/RadarMap";
 import { SettingsSheet } from "./ui/components/SettingsSheet";
+import { AnimatedBackground } from "./ui/components/AnimatedBackground";
+import { AlertBanner } from "./ui/components/AlertBanner";
+import { TrayPopup } from "./ui/components/TrayPopup";
+
+// Declare global properties on window for Tauri tray callbacks
+declare global {
+  interface Window {
+    __TRAY_REFRESH?: () => void;
+    __TRAY_SETTINGS?: () => void;
+    __TRAY_TOGGLE_POPUP?: () => void;
+  }
+}
 
 export default function App() {
   const cities = useAppStore((s) => s.cities);
@@ -23,12 +39,52 @@ export default function App() {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [trayPopupOpen, setTrayPopupOpen] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [onboardingMessage, setOnboardingMessage] = useState<string | null>(null);
+  const [isWideScreen, setIsWideScreen] = useState(false);
   const onboardingRan = useRef(false);
 
   const selectedCity = cities.find((c) => c.id === selectedId) ?? null;
   const entry = selectedId ? weatherByCity[selectedId] : undefined;
+
+  useEffect(() => {
+    const handleResize = () => setIsWideScreen(window.innerWidth >= 1100);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Setup Tauri Tray global callbacks
+  useEffect(() => {
+    window.__TRAY_REFRESH = () => {
+      void refreshAll(true);
+    };
+    window.__TRAY_SETTINGS = () => {
+      setSettingsOpen(true);
+    };
+    window.__TRAY_TOGGLE_POPUP = () => {
+      setTrayPopupOpen((prev) => !prev);
+    };
+    return () => {
+      delete window.__TRAY_REFRESH;
+      delete window.__TRAY_SETTINGS;
+      delete window.__TRAY_TOGGLE_POPUP;
+    };
+  }, [refreshAll]);
+
+  // Update Tray tooltip dynamically when weather changes
+  useEffect(() => {
+    if (settings.showTray !== false && entry?.status === "ready" && entry.data) {
+      try {
+        const tempStr = degrees(entry.data.current.temperature);
+        const condition = labelFor(entry.data.current.weatherCode);
+        void invoke("update_tray_weather", { tempStr, condition }).catch(() => {});
+      } catch (_) {
+        // Not running in Tauri context, ignore
+      }
+    }
+  }, [entry?.status, entry?.data, settings.showTray]);
 
   useEffect(() => {
     if (onboardingRan.current) return;
@@ -81,8 +137,12 @@ export default function App() {
     }
   };
 
+  const scene = entry?.data ? sceneFor(entry.data.current.weatherCode, entry.data.current.isDay) : null;
+  const surface = scene?.surface ?? "rgba(255,255,255,0.12)";
+
   return (
     <div className="app">
+      {scene && <AnimatedBackground scene={scene} reducedMotion={settings.reducedMotion} />}
       <div className="app-shell">
         <div className="topbar">
           <button onClick={handleDetect} disabled={detecting}>{detecting ? "Locating…" : "📍"}</button>
@@ -96,22 +156,39 @@ export default function App() {
           {selectedCity && entry?.status === "loading" && <div className="status">Loading {selectedCity.name}…</div>}
           {selectedCity && entry?.status === "error" && (
             <div className="status">Couldn't load weather.<br />
-              <button className="city-dot" style={{width:"auto",height:"auto",padding:"8px 14px",marginTop:12}} onClick={() => loadWeather(selectedCity.id)}>Retry</button>
+              <button className="city-dot" style={{width:"auto",height:"auto",padding:"8px 14px",marginTop:12}} onClick={() => loadWeather(selectedCity.id, true)}>Retry</button>
             </div>
           )}
           {selectedCity && entry?.status === "ready" && entry.data && (
             <>
-              <HeroHeader city={selectedCity} weather={entry.data} />
-              <HourlyStrip weather={entry.data} surface="rgba(255,255,255,0.12)" />
-              {settings.showRadar && <RadarMap city={selectedCity} surface="rgba(255,255,255,0.12)" />}
-              <DailyForecast weather={entry.data} surface="rgba(255,255,255,0.12)" />
-              <DetailGrid weather={entry.data} unit={settings.unit} surface="rgba(255,255,255,0.12)" />
+              <AlertBanner />
+              <HeroHeader city={selectedCity} weather={entry.data} lastUpdated={entry.lastUpdated} />
+              {isWideScreen ? (
+                <div className="forecast-grid">
+                  <div className="forecast-col">
+                    <HourlyStrip weather={entry.data} surface={surface} />
+                    <DailyForecast weather={entry.data} surface={surface} />
+                  </div>
+                  <div className="forecast-col">
+                    {settings.showRadar && <RadarMap city={selectedCity} surface={surface} />}
+                    <DetailGrid weather={entry.data} unit={settings.unit} surface={surface} />
+                  </div>
+                </div>
+              ) : (
+                <div className="forecast-col">
+                  <HourlyStrip weather={entry.data} surface={surface} />
+                  {settings.showRadar && <RadarMap city={selectedCity} surface={surface} />}
+                  <DailyForecast weather={entry.data} surface={surface} />
+                  <DetailGrid weather={entry.data} unit={settings.unit} surface={surface} />
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
       {searchOpen && <CitySearch onClose={() => setSearchOpen(false)} />}
       {settingsOpen && <SettingsSheet onClose={() => setSettingsOpen(false)} />}
+      {trayPopupOpen && <TrayPopup onClose={() => setTrayPopupOpen(false)} />}
     </div>
   );
 }

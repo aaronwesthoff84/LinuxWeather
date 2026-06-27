@@ -59,6 +59,18 @@ export function SettingsSheet({ onClose }: Props) {
               onChange={(v) => updateSettings({ showRadar: v })}
             />
             <ToggleRow
+              label="Show Weather Alerts"
+              hint="Surfaces active weather warnings from NOAA/NWS above the forecast."
+              checked={settings.showAlerts ?? true}
+              onChange={(v) => updateSettings({ showAlerts: v })}
+            />
+            <ToggleRow
+              label="System Tray Icon"
+              hint="Shows a quick weather glance icon in your desktop system tray or menu bar."
+              checked={settings.showTray ?? true}
+              onChange={(v) => updateSettings({ showTray: v })}
+            />
+            <ToggleRow
               label="Reduced Motion"
               hint="Disables the animated background and weather particles."
               checked={settings.reducedMotion}
@@ -118,28 +130,34 @@ export function SettingsSheet({ onClose }: Props) {
             {cities.length === 0 && (
               <div className="settings-empty">No cities yet.</div>
             )}
-            {cities.map((c) => (
-              <div className="settings-city" key={c.id}>
-                <div>
-                  <div className="settings-city-name">
-                    {c.name}
-                    {c.isCurrent && (
-                      <span className="settings-badge">Current</span>
-                    )}
+            {cities.map((c) => {
+              const hasAlerts = useAppStore.getState().alertsByCity[c.id]?.length > 0;
+              return (
+                <div className="settings-city" key={c.id}>
+                  <div>
+                    <div className="settings-city-name">
+                      {c.name}
+                      {c.isCurrent && (
+                        <span className="settings-badge">Current</span>
+                      )}
+                      {hasAlerts && settings.showAlerts && (
+                        <span className="city-badge-alert">Alert</span>
+                      )}
+                    </div>
+                    <div className="settings-city-sub">
+                      {[c.region, c.country].filter(Boolean).join(", ")}
+                    </div>
                   </div>
-                  <div className="settings-city-sub">
-                    {[c.region, c.country].filter(Boolean).join(", ")}
-                  </div>
+                  <button
+                    className="settings-remove"
+                    onClick={() => removeCity(c.id)}
+                    aria-label={`Remove ${c.name}`}
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  className="settings-remove"
-                  onClick={() => removeCity(c.id)}
-                  aria-label={`Remove ${c.name}`}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </Section>
 
           {/* ── About ────────────────────────────────────── */}

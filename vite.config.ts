@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
+    host: true,
   },
   build: {
     target: "esnext",

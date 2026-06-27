@@ -47,6 +47,8 @@ To swap in a paid provider, change the URL + pass your API key in Settings.
 
 ## Quick start
 
+> **Security Note:** `npm run dev:vite` binds to `0.0.0.0` (all interfaces) by default (`host: true`), making the dev server visible to all devices on the same WiFi/local network. This is convenient for testing on phones/other devices on trusted networks, but should not be used on public or shared untrusted networks.
+
 ```bash
 # Clone
 git clone https://github.com/aaronwesthoff84/LinuxWeather.git

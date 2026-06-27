@@ -83,11 +83,11 @@ export function AnimatedBackground({ scene, reducedMotion = false }: Props) {
   }, [scene.particle, reducedMotion]);
 
   return (
-    <>
-      <div className="bg-gradient" style={{ background: gradientCss }} />
+    <div className="animated-bg-container">
+      <div className="bg-gradient" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0, background: gradientCss }} />
       {!reducedMotion && scene.particle !== "none" && (
-        <canvas className="bg-canvas" ref={canvasRef} />
+        <canvas className="bg-canvas" ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0 }} />
       )}
-    </>
+    </div>
   );
 }

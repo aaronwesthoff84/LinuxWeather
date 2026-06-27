@@ -24,6 +24,7 @@ export function RadarMap({ city, surface, paused = false }: Props) {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // 1. Build / refresh the Leaflet map whenever the selected city changes.
   useEffect(() => {
@@ -88,7 +89,7 @@ export function RadarMap({ city, surface, paused = false }: Props) {
       active = false;
       window.clearInterval(refresh);
     };
-  }, []);
+  }, [city.id]);
 
   // 3. Whenever frames change, rebuild the per-frame tile layers (hidden).
   useEffect(() => {
@@ -107,6 +108,9 @@ export function RadarMap({ city, surface, paused = false }: Props) {
         crossOrigin: true,
         maxZoom: 11,
         minZoom: 3,
+        updateWhenIdle: false,
+        updateWhenZooming: true,
+        keepBuffer: 16,
       });
       layer.addTo(map);
       layersRef.current.push(layer);
@@ -122,7 +126,7 @@ export function RadarMap({ city, surface, paused = false }: Props) {
 
   // 5. Playback loop — respects the paused prop.
   useEffect(() => {
-    if (paused || frames.length === 1) return;
+    if (paused || frames.length <= 1) return;
     tickRef.current = window.setInterval(() => {
       setIndex((i) => (i + 1) % frames.length);
     }, FRAME_INTERVAL_MS);
@@ -133,6 +137,14 @@ export function RadarMap({ city, surface, paused = false }: Props) {
       }
     };
   }, [paused, frames.length]);
+
+  // Handle Fullscreen resize
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => !prev);
+    setTimeout(() => {
+      mapRef.current?.invalidateSize();
+    }, 50);
+  };
 
   const currentFrame = frames[index];
   const label = useMemo(() => {
@@ -145,18 +157,25 @@ export function RadarMap({ city, surface, paused = false }: Props) {
     return currentFrame.forecast ? `${time} (forecast)` : time;
   }, [currentFrame]);
 
-  return (
-    <section className="card radar fade-in" style={{ background: surface }}>
-      <div className="card-caption">🛰️ Precipitation Radar</div>
+  const content = (
+    <>
+      <div className="card-header-bar">
+        <div className="card-caption">🛰️ Precipitation Radar</div>
+        <div className="radar-toggles">
+          <button className="radar-toggle-btn" onClick={toggleFullscreen}>
+            {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+          </button>
+        </div>
+      </div>
       <div className="radar-map-wrap">
         <div ref={containerRef} className="radar-map" />
-        {loading && <div className="radar-loading">Loading radar…</div>}
+        {loading && <div className="radar-loading">Loading map…</div>}
         {error && <div className="radar-error">{error}</div>}
       </div>
       <div className="radar-controls">
         <button
           className="radar-btn"
-          onClick={() => setIndex((i) => Math.max(1, i - 1))}
+          onClick={() => setIndex((i) => Math.max(0, i - 1))}
           disabled={frames.length <= 1}
           aria-label="Previous frame"
         >
@@ -173,6 +192,20 @@ export function RadarMap({ city, surface, paused = false }: Props) {
         />
         <span className="radar-time">{label}</span>
       </div>
+    </>
+  );
+
+  if (isFullscreen) {
+    return (
+      <section className="radar-fullscreen-overlay">
+        {content}
+      </section>
+    );
+  }
+
+  return (
+    <section className="card radar fade-in" style={{ background: surface }}>
+      {content}
     </section>
   );
 }

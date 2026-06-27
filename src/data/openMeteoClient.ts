@@ -55,6 +55,10 @@ export async function fetchForecast(
       "weather_code",
       "is_day",
       "precipitation_probability",
+      "apparent_temperature",
+      "relative_humidity_2m",
+      "wind_speed_10m",
+      "wind_direction_10m",
     ].join(","),
     daily: [
       "weather_code",

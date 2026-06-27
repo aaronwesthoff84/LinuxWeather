@@ -48,12 +48,84 @@ fn apply_linux_fixups() {
     }
 }
 
+#[tauri::command]
+fn update_tray_weather(app: tauri::AppHandle, temp_str: String, condition: String) -> Result<(), String> {
+    use tauri::Manager;
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        let _ = tray.set_tooltip(Some(format!("{} - {}", temp_str, condition)));
+    }
+    Ok(())
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     apply_linux_fixups();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
+        .invoke_handler(tauri::generate_handler![update_tray_weather])
+        .setup(|app| {
+            use tauri::{
+                menu::{Menu, MenuItem, PredefinedMenuItem},
+                tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+                Manager,
+            };
+
+            let temp_item = MenuItem::with_id(app, "temp", "Weather: Loading...", true, None::<&str>)?;
+            let refresh_item = MenuItem::with_id(app, "refresh", "Refresh", true, None::<&str>)?;
+            let open_item = MenuItem::with_id(app, "open", "Open App", true, None::<&str>)?;
+            let settings_item = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let sep = PredefinedMenuItem::separator(app)?;
+
+            let menu = Menu::with_items(
+                app,
+                &[&temp_item, &sep, &refresh_item, &open_item, &settings_item, &sep, &quit_item],
+            )?;
+
+            let _tray = TrayIconBuilder::with_id("main-tray")
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .menu_on_left_click(false)
+                .on_menu_event(|app, event| {
+                    match event.id().as_ref() {
+                        "refresh" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.eval("window.__TRAY_REFRESH && window.__TRAY_REFRESH()");
+                            }
+                        }
+                        "open" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "settings" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let _ = window.eval("window.__TRAY_SETTINGS && window.__TRAY_SETTINGS()");
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.eval("window.__TRAY_TOGGLE_POPUP && window.__TRAY_TOGGLE_POPUP()");
+                        }
+                    }
+                })
+                .build(app)?;
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running Weather application");
 }

@@ -19,6 +19,12 @@ export interface Settings {
   apiKey: string;
   /** Try to detect the user's location on first launch. */
   autoDetectOnFirstLaunch: boolean;
+  /** Radar layer type: precipitation or satellite. */
+  radarLayer: "precipitation" | "satellite";
+  /** Show weather alerts banner. */
+  showAlerts: boolean;
+  /** Show system tray icon. */
+  showTray: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +34,9 @@ export const DEFAULT_SETTINGS: Settings = {
   autoRefreshMinutes: 15,
   apiKey: "",
   autoDetectOnFirstLaunch: true,
+  radarLayer: "precipitation",
+  showAlerts: true,
+  showTray: true,
 };
 
 export interface RefreshOption {
