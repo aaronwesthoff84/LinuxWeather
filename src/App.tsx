@@ -86,7 +86,8 @@ export default function App() {
   };
 
   return (
-    <div className="app" style={{ background: '#1a1a2e' }}>
+    <div className="app">
+      <div className="static-bg" style={{ background: `linear-gradient(180deg, ${scene.gradient[0]} 0%, ${scene.gradient[1]} 52%, ${scene.gradient[2]} 100%)` }} />
       <div className="app-shell">
         <div className="topbar">
           <button onClick={handleDetect} disabled={detecting}>{detecting ? "Locating…" : "📍"}</button>
@@ -106,10 +107,16 @@ export default function App() {
           {selectedCity && entry?.status === "ready" && entry.data && (
             <>
               <HeroHeader city={selectedCity} weather={entry.data} />
-              <HourlyStrip weather={entry.data} surface={scene.surface} />
-              {settings.showRadar && <RadarMap city={selectedCity} surface={scene.surface} />}
-              <DailyForecast weather={entry.data} surface={scene.surface} />
-              <DetailGrid weather={entry.data} unit={settings.unit} surface={scene.surface} />
+              <div className="forecast-grid">
+                <div className="forecast-col">
+                  <HourlyStrip weather={entry.data} surface={scene.surface} />
+                  <DailyForecast weather={entry.data} surface={scene.surface} />
+                </div>
+                <div className="forecast-col">
+                  {settings.showRadar && <RadarMap city={selectedCity} surface={scene.surface} />}
+                  <DetailGrid weather={entry.data} unit={settings.unit} surface={scene.surface} />
+                </div>
+              </div>
             </>
           )}
         </div>
